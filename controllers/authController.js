@@ -1,4 +1,9 @@
+const jwt = require('jsonwebtoken');
+
 const users = []; // In-memory user storage (replace with a database in production)
+
+// Secret key for JWT (store this in an environment variable in production)
+const JWT_SECRET = 'your_jwt_secret_key';
 
 // Helper function to validate email format
 const isValidEmail = (email) => {
@@ -8,16 +13,23 @@ const isValidEmail = (email) => {
 
 // Helper function to validate password strength
 const isValidPassword = (password) => {
-  // Password must be at least 8 characters, contain at least one uppercase, one lowercase, one number, and one special character
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return passwordRegex.test(password);
 };
 
 // Helper function to validate name
 const isValidName = (name) => {
-  // Name should only contain letters and spaces, and be between 2 and 50 characters
   const nameRegex = /^[A-Za-z\s]{2,50}$/;
   return nameRegex.test(name);
+};
+
+// Helper function to generate JWT token
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user.id, email: user.email },
+    JWT_SECRET,
+    { expiresIn: '1h' } // Token expires in 1 hour
+  );
 };
 
 const signup = (req, res) => {
@@ -70,12 +82,15 @@ const signup = (req, res) => {
     const newUser = { id: users.length + 1, name, email, password };
     users.push(newUser);
 
+    // Generate JWT token
+    const token = generateToken(newUser);
+
     return res.status(201).json({ 
       message: 'User created successfully', 
-      user: { id: newUser.id, name, email } 
+      user: { id: newUser.id, name, email },
+      token
     });
   } catch (error) {
-    // Handle unexpected errors
     return res.status(500).json({ 
       message: 'An unexpected error occurred during signup', 
       error: error.message 
@@ -111,12 +126,15 @@ const login = (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Generate JWT token
+    const token = generateToken(user);
+
     return res.status(200).json({ 
       message: 'Login successful', 
-      user: { id: user.id, name: user.name, email } 
+      user: { id: user.id, name: user.name, email },
+      token
     });
   } catch (error) {
-    // Handle unexpected errors
     return res.status(500).json({ 
       message: 'An unexpected error occurred during login', 
       error: error.message 
