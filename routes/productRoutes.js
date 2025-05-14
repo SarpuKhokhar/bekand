@@ -6,10 +6,12 @@ const {
   deleteProduct,
   updateProduct
 } = require('../controllers/productController');
+const upload = require('../middleware/multer');
 
-router.post('/products', addProduct);
+// Routes
+router.post('/products', upload.array('images', 5), addProduct); // Allow up to 5 images
 router.get('/products', getProducts);
 router.delete('/products/:id', deleteProduct);
-router.put('/products/:id', updateProduct);
+router.put('/products/:id', upload.array('images', 5), updateProduct);
 
 module.exports = router;
