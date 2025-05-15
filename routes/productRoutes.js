@@ -1,17 +1,19 @@
+// routes/productRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
   addProduct,
   getProducts,
   deleteProduct,
-  updateProduct
+  updateProduct,
 } = require('../controllers/productController');
 const upload = require('../middleware/multer');
+const { verifyToken } = require('../middleware/auth');
 
 // Routes
-router.post('/products', upload.array('images', 5), addProduct); // Allow up to 5 images
-router.get('/products', getProducts);
-router.delete('/products/:id', deleteProduct);
-router.put('/products/:id', upload.array('images', 5), updateProduct);
+router.post('/products', verifyToken, upload.array('images', 5), addProduct); // Protected
+router.get('/products', getProducts); // Public
+router.delete('/products/:id', verifyToken, deleteProduct); // Protected
+router.put('/products/:id', verifyToken, upload.array('images', 5), updateProduct); // Protected
 
 module.exports = router;
